@@ -54,7 +54,7 @@ func (h *HeaderValidation) HeaderValidator(next http.Handler) http.Handler {
 				}
 			}
 
-			if !validateType(headerValue, value.Type) {
+			if !validateType(headerValue, value.Type, value.MinLength, value.MaxLength) {
 				err.AddDetail(httperrors.InvalidHeader(key))
 			}
 		}
@@ -63,20 +63,24 @@ func (h *HeaderValidation) HeaderValidator(next http.Handler) http.Handler {
 			statusCode, err := err.ErrorResponse()
 			w.WriteHeader(statusCode)
 			w.Write(err.ToJSON())
-			
+
 			return
 		}
-		
+
 		next.ServeHTTP(w, r)
 	})
 }
 
-func validateType(value string, headerType string, length ...int) bool {
+func validateType(value string, headerType string, ranges ...int) bool {
 	switch headerType {
 	case Int:
 		return isInt(value)
 	case String:
-		return isString(value, length[0], length[1])
+		if len(ranges) > 0 {
+			return isString(value, ranges[0], ranges[1])
+		}
+
+		return true
 	case Uuid:
 		return isUUID(value)
 	case Email:
