@@ -61,6 +61,8 @@ func (h *HeaderValidation) HeaderValidator(next http.Handler) http.Handler {
 
 		if len(err.Details) > 0 {
 			statusCode, err := err.ErrorResponse()
+
+			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(statusCode)
 			w.Write(err.ToJSON())
 
